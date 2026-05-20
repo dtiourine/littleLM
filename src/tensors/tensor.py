@@ -1,7 +1,10 @@
+import numpy as np
+
+
 class Tensor:
     def __init__(self, data):
-        self.data = data
-        self.grad = 0.0
+        self.data = np.asarray(data)
+        self.grad = np.zeros_like(self.data, dtype=float)
 
         self._prev = set()
         self._backward = lambda: None
@@ -117,16 +120,20 @@ class Tensor:
         return out
 
     def relu(self):
-        out = Tensor(self.data) if self.data > 0 else Tensor(0)
+        out = Tensor(np.maximum(self.data, 0))
         out._prev = {self}
 
         def backward():
-            self.grad += 1.0 * out.grad if self.data > 0 else 0.0 * out.grad
+            self.grad += (self.data > 0).astype(float) * out.grad
 
         out._backward = backward
         return out
 
     def backward(self):
+        assert (
+            self.data.ndim == 0 or self.data.size == 1
+        ), "backward() should only be called on a scalar"
+
         visited = set()
         topo = []
 
@@ -139,7 +146,7 @@ class Tensor:
 
         build_topo(self)
 
-        self.grad = 1.0
+        self.grad = np.ones_like(self.data, dtype=float)
 
         for v in reversed(topo):
             v._backward()
