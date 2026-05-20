@@ -1,6 +1,15 @@
 import numpy as np
 
 
+def unbroadcast(grad, original_shape):
+    while grad.ndim > len(original_shape):
+        grad = grad.sum(axis=0)
+    for axis, dim in enumerate(original_shape):
+        if dim == 1:
+            grad = grad.sum(axis=axis, keepdims=True)
+    return grad
+
+
 class Tensor:
     def __init__(self, data):
         self.data = np.asarray(data)
@@ -15,8 +24,8 @@ class Tensor:
         out._prev = {self, other}
 
         def backward():
-            self.grad += out.grad * 1
-            other.grad += out.grad * 1
+            self.grad += unbroadcast(out.grad * 1, self.data.shape)
+            other.grad += unbroadcast(out.grad * 1, other.data.shape)
 
         out._backward = backward
 
@@ -28,8 +37,8 @@ class Tensor:
         out._prev = {self, other}
 
         def backward():
-            self.grad += out.grad * 1
-            other.grad += out.grad * 1
+            self.grad += unbroadcast(out.grad * 1, self.data.shape)
+            other.grad += unbroadcast(out.grad * 1, other.data.shape)
 
         out._backward = backward
 
@@ -41,8 +50,8 @@ class Tensor:
         out._prev = {self, other}
 
         def backward():
-            self.grad += other.data * out.grad
-            other.grad += self.data * out.grad
+            self.grad += unbroadcast(other.data * out.grad, self.data.shape)
+            other.grad += unbroadcast(self.data * out.grad, other.data.shape)
 
         out._backward = backward
 
@@ -54,8 +63,8 @@ class Tensor:
         out._prev = {self, other}
 
         def backward():
-            self.grad += 1 * out.grad
-            other.grad += -1 * out.grad
+            self.grad += unbroadcast(1 * out.grad, self.data.shape)
+            other.grad += unbroadcast(-1 * out.grad, other.data.shape)
 
         out._backward = backward
 
@@ -66,7 +75,7 @@ class Tensor:
         out._prev = {self}
 
         def backward():
-            self.grad += -1 * out.grad
+            self.grad += unbroadcast(-1 * out.grad, self.data.shape)
 
         out._backward = backward
         return out
@@ -77,8 +86,8 @@ class Tensor:
         out._prev = {self, other}
 
         def backward():
-            self.grad += other.data * out.grad
-            other.grad += self.data * out.grad
+            self.grad += unbroadcast(other.data * out.grad, self.data.shape)
+            other.grad += unbroadcast(self.data * out.grad, other.data.shape)
 
         out._backward = backward
 
@@ -90,8 +99,10 @@ class Tensor:
         out._prev = {self, other}
 
         def backward():
-            self.grad += 1 / other.data * out.grad
-            other.grad += -self.data * other.data**-2 * out.grad
+            self.grad += unbroadcast(1 / other.data * out.grad, self.data.shape)
+            other.grad += unbroadcast(
+                -self.data * other.data**-2 * out.grad, other.data.shape
+            )
 
         out._backward = backward
         return out
@@ -102,8 +113,10 @@ class Tensor:
         out._prev = {self, other}
 
         def backward():
-            other.grad += 1 / self.data * out.grad
-            self.grad += -other.data * self.data**-2 * out.grad
+            other.grad += unbroadcast(1 / self.data * out.grad, other.data.shape)
+            self.grad += unbroadcast(
+                -other.data * self.data**-2 * out.grad, self.data.shape
+            )
 
         out._backward = backward
         return out
@@ -113,7 +126,9 @@ class Tensor:
         out._prev = {self}
 
         def backward():
-            self.grad += (exp) * self.data ** (exp - 1) * out.grad
+            self.grad += unbroadcast(
+                (exp) * self.data ** (exp - 1) * out.grad, self.data.shape
+            )
 
         out._backward = backward
 
@@ -124,7 +139,9 @@ class Tensor:
         out._prev = {self}
 
         def backward():
-            self.grad += (self.data > 0).astype(float) * out.grad
+            self.grad += unbroadcast(
+                (self.data > 0).astype(float) * out.grad, self.data.shape
+            )
 
         out._backward = backward
         return out
