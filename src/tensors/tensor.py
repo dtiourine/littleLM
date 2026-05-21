@@ -56,7 +56,34 @@ class Tensor:
         out._backward = backward
 
         return out
+    
+    def sum(self, axis: int | None = None):
+        out = Tensor(np.sum(self.data, axis=axis))
+        out._prev = {self}
+        
+        def backward():
+            grad = np.ones_like(self.data) * out.grad
+            if axis is not None:
+                grad = np.expand_dims(grad, axis=axis)
+            self.grad += grad
+        
+        out._backward = backward 
+        return out 
 
+    def mean(self, axis: int | None = None):
+        out = Tensor(np.mean(self.data, axis=axis))
+        out._prev = {self}
+        
+        def backward():
+            grad = np.ones_like(self.data) * out.grad / self.data.size 
+            if axis is not None:
+                grad = np.expand_dims(grad, axis=axis)
+            self.grad += grad
+            
+        out._backward = backward 
+        return out 
+    
+    
     def __sub__(self, other):
         other = other if isinstance(other, Tensor) else Tensor(other)
         out = Tensor(self.data - other.data)
