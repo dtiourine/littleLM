@@ -167,8 +167,7 @@ class Tensor:
 
     def __getitem__(self, indices):
         if isinstance(indices, Tensor):
-            indices = indices.data
-        indices = np.asarray(indices)
+            indices = indices.data.astype(int)
 
         out = Tensor(self.data[indices])
         out._prev = {self}
