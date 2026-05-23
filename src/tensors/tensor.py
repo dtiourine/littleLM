@@ -65,8 +65,8 @@ class Tensor:
         out._prev = {self, other}
 
         def _backward():
-            self.grad += out.grad @ other.data.T
-            other.grad += self.data.T @ out.grad
+            self.grad += out.grad @ other.data.swapaxes(-1, -2)
+            other.grad += self.data.swapaxes(-1, -2) @ out.grad
 
         out._backward = _backward
         return out
