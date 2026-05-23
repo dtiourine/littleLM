@@ -71,6 +71,38 @@ class Tensor:
         out._backward = _backward
         return out
 
+    def relu(self):
+        out = Tensor(np.maximum(self.data, 0))
+        out._prev = {self}
+
+        def _backward():
+            self.grad += (self.data > 0).astype(np.float64) * out.grad
+
+        out._backward = _backward
+        return out
+
+    def tanh(self):
+        out = Tensor(np.tanh(self.data))
+        out._prev = {self}
+
+        def _backward():
+            self.grad += (1 - out.data**2) * out.grad
+
+        out._backward = _backward
+        return out
+
+    def gelu(self):
+        c = np.sqrt(2.0 / np.pi)
+        inner = c * (self + 0.044715 * (self**3))
+
+        tanh_inner = inner.tanh()
+        return 0.5 * self * (1.0 + tanh_inner)
+
+    def softmax(self, axis=-1):
+        shifted = self - self.max(axis=axis, keepdims=True)
+        exp_shifted = shifted.exp()
+        return exp_shifted / exp_shifted.sum(axis=axis, keepdims=True)
+
     def sum(self, axis=None, keepdims=False):
         out = Tensor(np.sum(self.data, axis=axis, keepdims=keepdims))
         out._prev = {self}
