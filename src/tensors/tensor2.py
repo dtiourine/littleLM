@@ -103,23 +103,82 @@ class Tensor:
 
         out._backward = _backward
         return out
-    
+
     def exp(self):
         out = Tensor(np.exp(self.data))
         out._prev = {self}
-        
+
         def _backward(self):
-            self.grad += out.grad * out.grad 
-            
-        out._backward = _backward 
-        return out 
-    
+            self.grad += out.grad * out.grad
+
+        out._backward = _backward
+        return out
+
     def log(self):
         out = Tensor(np.log(self.data))
         out._prev = {self}
-        
+
         def _backward(self):
             self.grad += out.grad * (1.0 / self.data)
-        
-        out._backward = _backward 
-        return out 
+
+        out._backward = _backward
+        return out
+
+    def sqrt(self):
+        out = Tensor(np.sqrt(self.data))
+        out._prev = {self}
+
+        def _backward(self):
+            self.grad += out.grad * (0.5 / out.data)
+
+        out._backward = _backward
+        return out
+
+    def transpose(self, axes=None):
+        out = Tensor(np.transpose(self.data, axes=axes))
+        out._prev = {self}
+
+        def _backward():
+            if axes is None:
+                self.grad += np.transpose(out.grad)
+            else:
+                inverse_axes = np.argsort(axes)
+                self.grad += np.transpose(out.grad, axes=inverse_axes)
+
+        out._backward = _backward
+        return out
+
+    @property
+    def T(self):
+        return self.transpose()
+
+    def reshape(self, *shape):
+        if len(shape) == 1 and isinstance(shape[0], tuple):
+            shape = shape[0]
+
+        out = Tensor(self.data.reshape(shape))
+        out._prev = {self}
+
+        def _backward():
+            self.grad += out.grad.reshape(self.data.shape)
+
+        out._backward = _backward
+        return out
+    
+    
+
+# def test_reshape():
+#     x_data = np.random.randn(2, 6)
+#     x = Tensor(x_data)
+#     L = x.reshape(3, 4).sum()
+#     L.backward()
+    
+#     xt = to_torch(x_data)
+#     Lt = xt.reshape(3, 4).sum()
+#     Lt.backward()
+    
+#     assert_close(x.grad, xt.grad.numpy(), "reshape x.grad")
+#     print("reshape test passed")
+
+# if __name__ == "__main__":
+#     test_reshape()
