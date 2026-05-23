@@ -325,3 +325,7 @@ class Tensor:
 
         for v in topo:
             v.grad = np.zeros_like(v.data, dtype=float)
+
+    @property
+    def shape(self):
+        return self.data.shape
