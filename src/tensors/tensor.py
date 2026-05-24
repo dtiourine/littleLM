@@ -329,3 +329,21 @@ class Tensor:
     @property
     def shape(self):
         return self.data.shape
+
+
+def stack(tensors, axis=0):
+    tensors = [t if isinstance(t, Tensor) else Tensor(t) for t in tensors]
+    raw_data = [t.data for t in tensors]
+    out = Tensor(np.stack(raw_data, axis=axis))
+
+    out._prev = set(tensors)
+
+    def _backward():
+        grad_slices = np.split(out.grad, len(tensors), axis=axis)
+        grads = [np.squeeze(g, axis=axis) for g in grad_slices]
+
+        for t, g in zip(tensors, grads):
+            t.grad += g
+
+    out._backward = _backward
+    return out

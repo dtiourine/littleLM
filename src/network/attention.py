@@ -1,5 +1,5 @@
 import numpy as np
-from tensors.tensor import Tensor
+from tensors.tensor import Tensor, stack
 
 
 class MultiheadAttention:
@@ -34,6 +34,8 @@ class MultiheadAttention:
         K = K.transpose(axes=(0, 2, 1, 3))
         V = V.transpose(axes=(0, 2, 1, 3))
 
+        Q, K = self._encode_position(Q, K, seq_len, batch_size)
+
         attn_scores = (Q @ K.transpose(axes=(0, 1, 3, 2))) / np.sqrt(self.d_k)
 
         mask = np.tril(np.ones((seq_len, seq_len)))
@@ -60,3 +62,31 @@ class MultiheadAttention:
             self.W_o,
             self.b_o,
         ]
+
+    # RoPE
+    def _encode_position(self, Q, K, seq_len, batch_size):
+        k = np.arange(self.d_k // 2)[None, :]
+        angles = 10000 ** (-2 * k / self.d_k)
+
+        n = np.arange(seq_len)[:, None]
+        m_theta = n * angles
+
+        cos_half = Tensor(np.cos(m_theta)[None, None, :, :])
+        sin_half = Tensor(np.sin(m_theta)[None, None, :, :])
+
+        Q_even, Q_odd = Q[:, :, :, 0::2], Q[:, :, :, 1::2]
+        K_even, K_odd = K[:, :, :, 0::2], K[:, :, :, 1::2]
+
+        Q_even_rot = Q_even * cos_half - Q_odd * sin_half
+        Q_odd_rot = Q_even * sin_half + Q_odd * cos_half
+
+        K_even_rot = K_even * cos_half - K_odd * sin_half
+        K_odd_rot = K_even * sin_half + K_odd * cos_half
+
+        Q_stacked = stack([Q_even_rot, Q_odd_rot], axis=-1)
+        K_stacked = stack([K_even_rot, K_odd_rot], axis=-1)
+
+        Q = Q_stacked.reshape(batch_size, self.n_heads, seq_len, self.d_k)
+        K = K_stacked.reshape(batch_size, self.n_heads, seq_len, self.d_k)
+
+        return Q, K
