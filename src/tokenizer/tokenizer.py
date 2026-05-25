@@ -1,104 +1,64 @@
+import re
+
+
 class Tokenizer:
     def __init__(self, vocab_size: int):
         self.vocab = {}
-        self.available_key = 256
         self.vocab_size = vocab_size
 
-    def train(self, text: str | list[int]):
-        if isinstance(text, str):
-            text = [ord(c) for c in list(text)]
+    def _pretokenize(self, text: str) -> list[str]:
+        return re.findall(r" ?\S+|\s+", text)
+
+    def train(self, text: str):
+        chunks = self._pretokenize(text)
+        chunks = [list(c.encode("utf-8")) for c in chunks]
 
         while len(self.vocab) < self.vocab_size - 256:
-            most_freq_pair = self._get_most_freq_pair(text)
-            pair = (most_freq_pair[0], most_freq_pair[1])
+            pair_counts = self._count_pairs(chunks)
+            best = max(pair_counts, key=pair_counts.get)
+            new_id = 256 + len(self.vocab)
+            self.vocab[new_id] = best
+            chunks = [self._merge(c, *best, new_id) for c in chunks]
 
-            self.vocab[self.available_key] = pair
-            text = self._merge(text, pair[0], pair[1], self.available_key)
-            self.available_key += 1
-
-    def _get_most_freq_pair(self, text: list[int]):
-        k = 2
-        state = []
+    def _count_pairs(self, chunks: list[list[int]]) -> dict[tuple[int, int], int]:
         count = {}
-
-        for r in range(len(text)):
-            state.append(text[r])
-
-            if r >= k:
-                state = state[1:]
-
-            if r >= k - 1:
-                pair = (state[0], state[1])
+        for chunk in chunks:
+            for pair in zip(chunk[:-1], chunk[1:]):
                 count[pair] = count.get(pair, 0) + 1
+        return count
 
-        return max(count, key=lambda pair: count[pair])
-
-    def _merge(self, text: list[int], left_c: int, right_c: int, new_c: int):
-        k = 2
-        state = []
-
-        r = 0
-        while r < len(text):
-            state.append(text[r])
-
-            if r >= k:
-                state = state[1:]
-
-            if r >= k - 1:
-                if state[0] == left_c and state[1] == right_c:
-                    text[k - 1] = new_c
-                    del text[r]
-                else:
-                    r += 1
+    def _merge(self, chunk: list[int], left: int, right: int, new_id: int):
+        result = []
+        i = 0
+        while i < len(chunk):
+            if i + 1 < len(chunk) and chunk[i] == left and chunk[i + 1] == right:
+                result.append(new_id)
+                i += 2
             else:
-                r += 1
+                result.append(chunk[i])
+                i += 1
+        return result
 
-        return text
+    def encode(self, text: str):
+        chunks = self._pretokenize(text)
+        chunks = [list(c.encode("utf-8")) for c in chunks]
 
-    def encode(self, text: str | list[int]):
-        if isinstance(text, str):
-            text = [ord(c) for c in list(text)]
+        result = []
+        for chunk in chunks:
+            for new_id in sorted(self.vocab.keys()):
+                pair = self.vocab[new_id]
+                chunk = self._merge(chunk, pair[0], pair[1], new_id)
+            result.extend(chunk)
+        return result
 
-        for i in self.vocab:
-            pair = self.vocab[i]
-            text = self._merge(text, pair[0], pair[1], i)
-        return text
+    def decode(self, ids: list[int]) -> str:
+        bytes_out = []
+        for token_id in ids:
+            bytes_out.extend(self._decode_token(token_id))
+        return bytes(bytes_out).decode("utf-8")
 
-    def decode(self, text: list[int]):
-        codes = list(self.vocab.keys())
-        codes.reverse()
-        print(codes)
-
-        for c in codes:
-            pair = self.vocab[c]
-
-            i = 0
-            while i < len(text):
-                if text[i] == c:
-                    text[i] = pair[0]
-                    text.insert(i + 1, pair[1])
-                else:
-                    i += 1
-
-        return "".join([chr(c) for c in text])
-
-
-if __name__ == "__main__":
-    # text = """
-    # the cat chased the caterpillar across the cathedral courtyard.
-    # cats chase caterpillars, and caterpillars crawl carefully.
-    # the cathedral cat was curious, calm, and very, very fast.
-    # """
-    # tokenizer = Tokenizer(vocab_size=10)
-    # # text_ints = [ord(c) for c in text]
-    # tokenizer.train(text)
-    # encoded = tokenizer.encode(text)
-    # print(encoded)
-    # decoded = tokenizer.decode(encoded)
-    # print(decoded)
-
-    t = Tokenizer(vocab_size=260)
-    t.train("aaabdaaabac")
-    print(t.vocab)
-    print(t.encode("aaabdaaabac"))
-    print(t.decode(t.encode("aaabdaaabac")))
+    def _decode_token(self, token_id: int) -> list[int]:
+        if token_id < 256:
+            return [token_id]
+        left, right = self.vocab[token_id]
+        return self._decode_token(left) + self._decode_token(right)
