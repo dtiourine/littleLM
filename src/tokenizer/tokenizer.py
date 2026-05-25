@@ -15,7 +15,7 @@ class Tokenizer:
 
         while len(self.vocab) < self.vocab_size - 256:
             pair_counts = self._count_pairs(chunks)
-            best = max(pair_counts, key=pair_counts.get)
+            best = max(pair_counts, key=lambda p: pair_counts[p])
             new_id = 256 + len(self.vocab)
             self.vocab[new_id] = best
             chunks = [self._merge(c, *best, new_id) for c in chunks]
