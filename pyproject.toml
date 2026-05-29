@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "transformer-from-scratch"
+version = "0.1.0"
+description = "A transformer implementation from scratch in NumPy"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "requests",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+py-modules = [
+    "dataloader",
+    "loss",
+    "optimizer",
+    "tensor",
+    "tokenizer",
+    "train",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
