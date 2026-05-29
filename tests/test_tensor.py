@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from tensor import Tensor, unbroadcast
+from littlelm.tensor import Tensor, unbroadcast
 
 
 # ---------------------------------------------------------------------------
