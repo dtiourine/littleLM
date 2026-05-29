@@ -2,7 +2,7 @@ from dataclasses import asdict
 
 import numpy as np
 
-from littlelm.config import DATA_DIR, DataConfig, ModelConfig, TrainConfig
+from littlelm.config import DATA_DIR, MODEL_DIR, DataConfig, ModelConfig, TrainConfig
 from littlelm.dataloader import DataLoader
 from littlelm.network.transformer import LittleLM
 from littlelm.optimizer import SGD
@@ -49,3 +49,7 @@ if __name__ == "__main__":
         eval_every=train_cfg.eval_every,
         eval_batches=train_cfg.eval_batches,
     )
+
+    print(f"Saving model to {MODEL_DIR}")
+    model.save(MODEL_DIR)
+    print("Done")

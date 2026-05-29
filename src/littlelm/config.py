@@ -4,7 +4,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = REPO_ROOT / "data"
-CHECKPOINT_DIR = REPO_ROOT / "checkpoints"
+MODEL_DIR = REPO_ROOT / "model"
 
 
 @dataclass
