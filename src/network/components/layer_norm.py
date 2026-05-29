@@ -19,3 +19,13 @@ class LayerNorm:
 
     def parameters(self):
         return [self.gamma, self.beta]
+
+    def state_dict(self):
+        return {"gamma": self.gamma.data, "beta": self.beta.data}
+
+    def load_state_dict(self, state):
+        for name, tensor in [("gamma", self.gamma), ("beta", self.beta)]:
+            assert tensor.data.shape == state[name].shape, (
+                f"LayerNorm.{name} shape mismatch: {tensor.data.shape} vs {state[name].shape}"
+            )
+            tensor.data = state[name]

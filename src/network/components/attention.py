@@ -63,6 +63,35 @@ class MultiheadAttention:
             self.b_o,
         ]
 
+    def state_dict(self):
+        return {
+            "W_q": self.W_q.data,
+            "b_q": self.b_q.data,
+            "W_k": self.W_k.data,
+            "b_k": self.b_k.data,
+            "W_v": self.W_v.data,
+            "b_v": self.b_v.data,
+            "W_o": self.W_o.data,
+            "b_o": self.b_o.data,
+        }
+
+    def load_state_dict(self, state):
+        for name, tensor in [
+            ("W_q", self.W_q),
+            ("b_q", self.b_q),
+            ("W_k", self.W_k),
+            ("b_k", self.b_k),
+            ("W_v", self.W_v),
+            ("b_v", self.b_v),
+            ("W_o", self.W_o),
+            ("b_o", self.b_o),
+        ]:
+            assert tensor.data.shape == state[name].shape, (
+                f"MultiheadAttention.{name} shape mismatch: "
+                f"{tensor.data.shape} vs {state[name].shape}"
+            )
+            tensor.data = state[name]
+
     # RoPE
     def _encode_position(self, Q, K, seq_len, batch_size):
         k = np.arange(self.d_k // 2)[None, :]

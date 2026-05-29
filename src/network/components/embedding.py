@@ -11,3 +11,12 @@ class Embedding:
 
     def parameters(self):
         return [self.W]
+
+    def state_dict(self):
+        return {"W": self.W.data}
+
+    def load_state_dict(self, state):
+        assert self.W.data.shape == state["W"].shape, (
+            f"Embedding.W shape mismatch: {self.W.data.shape} vs {state['W'].shape}"
+        )
+        self.W.data = state["W"]

@@ -18,3 +18,23 @@ class MLP:
 
     def parameters(self):
         return [self.W_1, self.b_1, self.W_2, self.b_2]
+
+    def state_dict(self):
+        return {
+            "W_1": self.W_1.data,
+            "b_1": self.b_1.data,
+            "W_2": self.W_2.data,
+            "b_2": self.b_2.data,
+        }
+
+    def load_state_dict(self, state):
+        for name, tensor in [
+            ("W_1", self.W_1),
+            ("b_1", self.b_1),
+            ("W_2", self.W_2),
+            ("b_2", self.b_2),
+        ]:
+            assert tensor.data.shape == state[name].shape, (
+                f"MLP.{name} shape mismatch: {tensor.data.shape} vs {state[name].shape}"
+            )
+            tensor.data = state[name]
