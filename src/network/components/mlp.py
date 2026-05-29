@@ -3,7 +3,7 @@ import numpy as np
 from tensors.tensor import Tensor
 
 
-class MLPBlock:
+class MLP:
     def __init__(self, d_model: int):
         self.W_1 = Tensor(np.random.randn(d_model, d_model * 4) * 0.01)
         self.b_1 = Tensor(np.zeros(d_model * 4))
