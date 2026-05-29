@@ -20,7 +20,11 @@ class TrainConfig:
     batch_size: int = 32
     context_len: int = 128
     lr: float = 1e-3
-    epochs: int = 10
+    max_steps: int = 1000
+    log_every: int = 50
+    eval_every: int = 100
+    eval_batches: int = 20
+    val_split: float = 0.1
     seed: int = 42
 
 
