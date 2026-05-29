@@ -1,10 +1,30 @@
+import json
 import re
+from pathlib import Path
 
 
 class Tokenizer:
     def __init__(self, vocab_size: int):
         self.vocab = {}
         self.vocab_size = vocab_size
+
+    def save(self, path):
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        state = {
+            "vocab_size": self.vocab_size,
+            "merges": [[new_id, list(pair)] for new_id, pair in self.vocab.items()],
+        }
+        with open(path, "w") as f:
+            json.dump(state, f, indent=2)
+
+    @classmethod
+    def from_file(cls, path):
+        with open(Path(path)) as f:
+            state = json.load(f)
+        tokenizer = cls(vocab_size=state["vocab_size"])
+        tokenizer.vocab = {new_id: tuple(pair) for new_id, pair in state["merges"]}
+        return tokenizer
 
     def _pretokenize(self, text: str) -> list[str]:
         return re.findall(r" ?\S+|\s+", text)
