@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 
+from loss import cross_entropy
 from network.components import Embedding, MLP, MultiheadAttention, LayerNorm
 from tensor import Tensor
 
@@ -46,7 +47,9 @@ class TransformerBlock:
     def load_state_dict(self, state):
         for name, child in self._children():
             prefix = f"{name}."
-            sub = {k[len(prefix):]: v for k, v in state.items() if k.startswith(prefix)}
+            sub = {
+                k[len(prefix) :]: v for k, v in state.items() if k.startswith(prefix)
+            }
             child.load_state_dict(sub)
 
 
@@ -110,16 +113,18 @@ class Transformer:
 
     def load_state_dict(self, state):
         def strip(prefix):
-            return {k[len(prefix):]: v for k, v in state.items() if k.startswith(prefix)}
+            return {
+                k[len(prefix) :]: v for k, v in state.items() if k.startswith(prefix)
+            }
 
         self.embedding.load_state_dict(strip("embedding."))
         for i, block in enumerate(self.blocks):
             block.load_state_dict(strip(f"blocks.{i}."))
         self.final_ln.load_state_dict(strip("final_ln."))
 
-        assert self.lm_head.data.shape == state["lm_head"].shape, (
-            f"lm_head shape mismatch: {self.lm_head.data.shape} vs {state['lm_head'].shape}"
-        )
+        assert (
+            self.lm_head.data.shape == state["lm_head"].shape
+        ), f"lm_head shape mismatch: {self.lm_head.data.shape} vs {state['lm_head'].shape}"
         self.lm_head.data = state["lm_head"]
 
     def save(self, path):
