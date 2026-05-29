@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 
 from network.components import Embedding, MLP, MultiheadAttention, LayerNorm
-from tensors.tensor import Tensor
+from tensor import Tensor
 
 
 class TransformerBlock:

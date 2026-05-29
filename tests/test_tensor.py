@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from tensors.tensor import Tensor, unbroadcast
+from tensor import Tensor, unbroadcast
 
 
 # ---------------------------------------------------------------------------

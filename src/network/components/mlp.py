@@ -1,6 +1,6 @@
 import numpy as np
 
-from tensors.tensor import Tensor
+from tensor import Tensor
 
 
 class MLP:
