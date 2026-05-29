@@ -2,9 +2,10 @@ from pathlib import Path
 
 import requests
 
+from littlelm.config import DATA_DIR, DataConfig
 
-def download(dest: Path) -> None:
-    source_url = "https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt"
+
+def download(dest: Path, source_url: str) -> None:
     if dest.exists():
         print(f"Already downloaded: {dest} ({dest.stat().st_size:,} bytes)")
         return
@@ -19,5 +20,5 @@ def download(dest: Path) -> None:
 
 
 if __name__ == "__main__":
-    dest = Path(__file__).resolve().parent.parent / "data" / "tinyshakespeare.txt"
-    download(dest)
+    cfg = DataConfig()
+    download(DATA_DIR / cfg.text_file, cfg.text_url)

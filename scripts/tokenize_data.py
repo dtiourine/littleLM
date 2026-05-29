@@ -2,10 +2,8 @@ from pathlib import Path
 
 import numpy as np
 
+from littlelm.config import DATA_DIR, DataConfig, ModelConfig
 from littlelm.tokenizer import Tokenizer
-
-
-VOCAB_SIZE = 1024
 
 
 def tokenize(text_path: Path, data_dest: Path, tokenizer_dest: Path, vocab_size: int):
@@ -35,8 +33,11 @@ def tokenize(text_path: Path, data_dest: Path, tokenizer_dest: Path, vocab_size:
 
 
 if __name__ == "__main__":
-    data_path = Path(__file__).resolve().parent.parent / "data"
-    text_path = data_path / "tinyshakespeare.txt"
-    data_dest = data_path / "data.npy"
-    tokenizer_dest = data_path / "tokenizer.json"
-    tokenize(text_path, data_dest, tokenizer_dest, vocab_size=VOCAB_SIZE)
+    data_cfg = DataConfig()
+    model_cfg = ModelConfig()
+    tokenize(
+        text_path=DATA_DIR / data_cfg.text_file,
+        data_dest=DATA_DIR / data_cfg.tokens_file,
+        tokenizer_dest=DATA_DIR / data_cfg.tokenizer_file,
+        vocab_size=model_cfg.vocab_size,
+    )
