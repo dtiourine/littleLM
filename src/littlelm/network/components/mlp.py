@@ -1,6 +1,6 @@
 import numpy as np
 
-from tensor import Tensor
+from littlelm.tensor import Tensor
 
 
 class MLP:

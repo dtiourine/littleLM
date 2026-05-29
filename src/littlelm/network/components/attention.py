@@ -1,5 +1,5 @@
 import numpy as np
-from tensor import Tensor, stack
+from littlelm.tensor import Tensor, stack
 
 
 class MultiheadAttention:

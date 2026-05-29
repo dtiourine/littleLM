@@ -3,9 +3,9 @@ from pathlib import Path
 
 import numpy as np
 
-from loss import cross_entropy
-from network.components import Embedding, MLP, MultiheadAttention, LayerNorm
-from tensor import Tensor
+from littlelm.loss import cross_entropy
+from littlelm.network.components import Embedding, MLP, MultiheadAttention, LayerNorm
+from littlelm.tensor import Tensor
 
 
 class TransformerBlock:
@@ -53,7 +53,7 @@ class TransformerBlock:
             child.load_state_dict(sub)
 
 
-class Transformer:
+class LittleLM:
     def __init__(self, d_model: int, vocab_size: int, n_heads: int, n_layers: int):
         self.d_model = d_model
         self.vocab_size = vocab_size

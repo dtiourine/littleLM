@@ -2,7 +2,7 @@ from pathlib import Path
 
 import numpy as np
 
-from tokenizer import Tokenizer
+from littlelm.tokenizer import Tokenizer
 
 
 VOCAB_SIZE = 1024
