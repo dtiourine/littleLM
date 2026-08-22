@@ -1,4 +1,4 @@
-import numpy as np
+from littlelm.backend import xp
 from littlelm.tensor import Tensor, stack
 
 
@@ -8,16 +8,16 @@ class MultiheadAttention:
         self.n_heads = n_heads
         self.d_k = d_model // n_heads
 
-        self.W_q = Tensor(np.random.randn(d_model, d_model) * 0.01)
-        self.W_k = Tensor(np.random.randn(d_model, d_model) * 0.01)
-        self.W_v = Tensor(np.random.randn(d_model, d_model) * 0.01)
+        self.W_q = Tensor(xp.random.randn(d_model, d_model) * 0.01)
+        self.W_k = Tensor(xp.random.randn(d_model, d_model) * 0.01)
+        self.W_v = Tensor(xp.random.randn(d_model, d_model) * 0.01)
 
-        self.b_q = Tensor(np.zeros(d_model))
-        self.b_k = Tensor(np.zeros(d_model))
-        self.b_v = Tensor(np.zeros(d_model))
+        self.b_q = Tensor(xp.zeros(d_model))
+        self.b_k = Tensor(xp.zeros(d_model))
+        self.b_v = Tensor(xp.zeros(d_model))
 
-        self.W_o = Tensor(np.random.randn(d_model, d_model) * 0.01)
-        self.b_o = Tensor(np.zeros(d_model))
+        self.W_o = Tensor(xp.random.randn(d_model, d_model) * 0.01)
+        self.b_o = Tensor(xp.zeros(d_model))
 
     def forward(self, x):
         batch_size, seq_len, _ = x.shape
@@ -36,9 +36,9 @@ class MultiheadAttention:
 
         Q, K = self._encode_position(Q, K, seq_len, batch_size)
 
-        attn_scores = (Q @ K.transpose(axes=(0, 1, 3, 2))) / np.sqrt(self.d_k)
+        attn_scores = (Q @ K.transpose(axes=(0, 1, 3, 2))) / xp.sqrt(self.d_k)
 
-        mask = np.tril(np.ones((seq_len, seq_len)))
+        mask = xp.tril(xp.ones((seq_len, seq_len)))
         mask_value = (1 - mask) * -1e9
         attn_scores = attn_scores + Tensor(mask_value)
 
@@ -94,14 +94,14 @@ class MultiheadAttention:
 
     # RoPE
     def _encode_position(self, Q, K, seq_len, batch_size):
-        k = np.arange(self.d_k // 2)[None, :]
+        k = xp.arange(self.d_k // 2)[None, :]
         angles = 10000 ** (-2 * k / self.d_k)
 
-        n = np.arange(seq_len)[:, None]
+        n = xp.arange(seq_len)[:, None]
         m_theta = n * angles
 
-        cos_half = Tensor(np.cos(m_theta)[None, None, :, :])
-        sin_half = Tensor(np.sin(m_theta)[None, None, :, :])
+        cos_half = Tensor(xp.cos(m_theta)[None, None, :, :])
+        sin_half = Tensor(xp.sin(m_theta)[None, None, :, :])
 
         Q_even, Q_odd = Q[:, :, :, 0::2], Q[:, :, :, 1::2]
         K_even, K_odd = K[:, :, :, 0::2], K[:, :, :, 1::2]

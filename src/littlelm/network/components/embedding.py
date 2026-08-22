@@ -1,10 +1,10 @@
-import numpy as np
+from littlelm.backend import xp
 from littlelm.tensor import Tensor
 
 
 class Embedding:
     def __init__(self, vocab_size, embed_dim):
-        self.W = Tensor(np.random.randn(vocab_size, embed_dim) * 0.01)
+        self.W = Tensor(xp.random.randn(vocab_size, embed_dim) * 0.01)
 
     def forward(self, token_ids):
         return self.W[token_ids]

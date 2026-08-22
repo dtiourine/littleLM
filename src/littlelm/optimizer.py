@@ -1,6 +1,6 @@
 from littlelm.tensor import Tensor
 
-import numpy as np
+from littlelm.backend import xp
 
 
 class SGD:
@@ -14,4 +14,4 @@ class SGD:
 
     def zero_grad(self):
         for param in self.params:
-            param.grad = np.zeros_like(param.data)
+            param.grad = xp.zeros_like(param.data)

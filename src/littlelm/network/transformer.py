@@ -3,6 +3,8 @@ from pathlib import Path
 
 import numpy as np
 
+from littlelm.backend import to_cpu, xp
+
 from littlelm.loss import cross_entropy
 from littlelm.network.components import Embedding, MLP, MultiheadAttention, LayerNorm
 from littlelm.tensor import Tensor
@@ -63,7 +65,7 @@ class LittleLM:
         self.embedding = Embedding(vocab_size, d_model)
         self.blocks = [TransformerBlock(d_model, n_heads) for _ in range(n_layers)]
         self.final_ln = LayerNorm(d_model)
-        self.lm_head = Tensor(np.random.randn(d_model, vocab_size) * 0.01)
+        self.lm_head = Tensor(xp.random.randn(d_model, vocab_size) * 0.01)
 
     def forward(self, x, targets=None):
         x = self.embedding.forward(x)
@@ -134,7 +136,8 @@ class LittleLM:
         with open(path / "config.json", "w") as f:
             json.dump(self.config(), f, indent=2)
 
-        np.savez(path / "weights.npz", **self.state_dict())
+        state = {key: to_cpu(value) for key, value in self.state_dict().items()}
+        np.savez(path / "weights.npz", **state)
 
     @classmethod
     def from_pretrained(cls, path):

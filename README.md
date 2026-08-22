@@ -35,6 +35,20 @@ python scripts/train_model.py
 python scripts/generate.py --prompt "ROMEO:"
 ```
 
+## GPU acceleration with CuPy
+
+CuPy allows the custom autograd and model code to use GPU acceleration while
+keeping the NumPy-like array API. Install the optional CUDA dependency, and the
+backend will automatically use CuPy when a CUDA-capable GPU is available:
+
+```bash
+pip install -e ".[gpu]"
+python scripts/train_model.py
+```
+
+If CuPy or a CUDA device is unavailable, the backend automatically falls back
+to NumPy.
+
 ## Use a pretrained checkpoint
 
 Skip training and pull weights + tokenizer from HuggingFace:

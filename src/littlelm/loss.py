@@ -1,4 +1,4 @@
-import numpy as np
+from littlelm.backend import xp
 
 
 def cross_entropy(logits, targets):
@@ -16,5 +16,5 @@ def cross_entropy(logits, targets):
     log_probs = shifted - log_sum_exp
 
     N = B * S
-    selected = log_probs[np.arange(N), flat_targets]
+    selected = log_probs[xp.arange(N), flat_targets]
     return -selected.mean()

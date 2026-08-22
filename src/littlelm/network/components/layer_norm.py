@@ -1,11 +1,11 @@
-import numpy as np
+from littlelm.backend import xp
 from littlelm.tensor import Tensor
 
 
 class LayerNorm:
     def __init__(self, d_model, eps=1e-5):
-        self.gamma = Tensor(np.ones(d_model))
-        self.beta = Tensor(np.zeros(d_model))
+        self.gamma = Tensor(xp.ones(d_model))
+        self.beta = Tensor(xp.zeros(d_model))
         self.eps = eps
 
     def forward(self, x: Tensor):

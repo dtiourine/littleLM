@@ -1,6 +1,8 @@
 import numpy as np
 from numpy.typing import NDArray
 
+from littlelm.backend import xp
+
 
 def unbroadcast(grad: NDArray, original_shape):
     while grad.ndim > len(original_shape):
@@ -13,8 +15,8 @@ def unbroadcast(grad: NDArray, original_shape):
 
 class Tensor:
     def __init__(self, data):
-        self.data = np.asarray(data, dtype=np.float64)
-        self.grad = np.zeros_like(self.data, dtype=float)
+        self.data = xp.asarray(data, dtype=xp.float64)
+        self.grad = xp.zeros_like(self.data, dtype=float)
 
         self._backward = lambda: None
         self._prev = set()
@@ -23,7 +25,7 @@ class Tensor:
         other = other if isinstance(other, Tensor) else Tensor(other)
 
         try:
-            np.broadcast_shapes(self.data.shape, other.data.shape)
+            xp.broadcast_shapes(self.data.shape, other.data.shape)
         except ValueError:
             raise ValueError(
                 f"Tensor shapes are not broadcastable: {self.data.shape} and {other.data.shape}"
@@ -43,7 +45,7 @@ class Tensor:
         other = other if isinstance(other, Tensor) else Tensor(other)
 
         try:
-            np.broadcast_shapes(self.data.shape, other.data.shape)
+            xp.broadcast_shapes(self.data.shape, other.data.shape)
         except ValueError:
             raise ValueError(
                 f"Tensor shapes are not broadcastable: {self.data.shape} and {other.data.shape}"
@@ -75,17 +77,17 @@ class Tensor:
         return out
 
     def relu(self):
-        out = Tensor(np.maximum(self.data, 0))
+        out = Tensor(xp.maximum(self.data, 0))
         out._prev = {self}
 
         def _backward():
-            self.grad += (self.data > 0).astype(np.float64) * out.grad
+            self.grad += (self.data > 0).astype(xp.float64) * out.grad
 
         out._backward = _backward
         return out
 
     def tanh(self):
-        out = Tensor(np.tanh(self.data))
+        out = Tensor(xp.tanh(self.data))
         out._prev = {self}
 
         def _backward():
@@ -95,7 +97,7 @@ class Tensor:
         return out
 
     def gelu(self):
-        c = np.sqrt(2.0 / np.pi)
+        c = xp.sqrt(2.0 / xp.pi)
         inner = c * (self + 0.044715 * (self**3))
 
         tanh_inner = inner.tanh()
@@ -107,22 +109,22 @@ class Tensor:
         return exp_shifted / exp_shifted.sum(axis=axis, keepdims=True)
 
     def sum(self, axis=None, keepdims=False):
-        out = Tensor(np.sum(self.data, axis=axis, keepdims=keepdims))
+        out = Tensor(xp.sum(self.data, axis=axis, keepdims=keepdims))
         out._prev = {self}
 
         def _backward():
             grad = out.grad
 
             if axis is not None and not keepdims:
-                grad = np.expand_dims(grad, axis=axis)
+                grad = xp.expand_dims(grad, axis=axis)
 
-            self.grad += np.broadcast_to(grad, self.data.shape).copy()
+            self.grad += xp.broadcast_to(grad, self.data.shape).copy()
 
         out._backward = _backward
         return out
 
     def mean(self, axis=None, keepdims=False):
-        out = Tensor(np.mean(self.data, axis=axis, keepdims=keepdims))
+        out = Tensor(xp.mean(self.data, axis=axis, keepdims=keepdims))
         out._prev = {self}
 
         if axis is None:
@@ -133,14 +135,14 @@ class Tensor:
         def _backward():
             grad = out.grad
             if axis is not None and not keepdims:
-                grad = np.expand_dims(grad, axis=axis)
-            self.grad += np.broadcast_to(grad, self.data.shape).copy() / n
+                grad = xp.expand_dims(grad, axis=axis)
+            self.grad += xp.broadcast_to(grad, self.data.shape).copy() / n
 
         out._backward = _backward
         return out
 
     def exp(self):
-        out = Tensor(np.exp(self.data))
+        out = Tensor(xp.exp(self.data))
         out._prev = {self}
 
         def _backward():
@@ -150,7 +152,7 @@ class Tensor:
         return out
 
     def log(self):
-        out = Tensor(np.log(self.data))
+        out = Tensor(xp.log(self.data))
         out._prev = {self}
 
         def _backward():
@@ -160,7 +162,7 @@ class Tensor:
         return out
 
     def sqrt(self):
-        out = Tensor(np.sqrt(self.data))
+        out = Tensor(xp.sqrt(self.data))
         out._prev = {self}
 
         def _backward():
@@ -170,15 +172,15 @@ class Tensor:
         return out
 
     def transpose(self, axes=None):
-        out = Tensor(np.transpose(self.data, axes=axes))
+        out = Tensor(xp.transpose(self.data, axes=axes))
         out._prev = {self}
 
         def _backward():
             if axes is None:
-                self.grad += np.transpose(out.grad)
+                self.grad += xp.transpose(out.grad)
             else:
-                inverse_axes = np.argsort(axes)
-                self.grad += np.transpose(out.grad, axes=inverse_axes)
+                inverse_axes = xp.argsort(axes)
+                self.grad += xp.transpose(out.grad, axes=inverse_axes)
 
         out._backward = _backward
         return out
@@ -208,13 +210,13 @@ class Tensor:
         out._prev = {self}
 
         def _backward():
-            np.add.at(self.grad, indices, out.grad)
+            xp.add.at(self.grad, indices, out.grad)
 
         out._backward = _backward
         return out
 
     def max(self, axis=None, keepdims=False):
-        out_data = np.max(self.data, axis=axis, keepdims=keepdims)
+        out_data = xp.max(self.data, axis=axis, keepdims=keepdims)
         out = Tensor(out_data)
         out._prev = {self}
 
@@ -224,13 +226,13 @@ class Tensor:
                 mask /= mask.sum()
                 self.grad += mask * out.grad
             else:
-                max_keepdims = np.max(self.data, axis=axis, keepdims=True)
+                max_keepdims = xp.max(self.data, axis=axis, keepdims=True)
                 mask = (self.data == max_keepdims).astype(float)
                 mask /= mask.sum(axis=axis, keepdims=True)
 
                 grad = out.grad
                 if not keepdims:
-                    grad = np.expand_dims(grad, axis=axis)
+                    grad = xp.expand_dims(grad, axis=axis)
                 self.grad += mask * grad
 
         out._backward = _backward
@@ -308,7 +310,7 @@ class Tensor:
 
         build_topo(self)
 
-        self.grad = np.ones_like(self.data, dtype=float)
+        self.grad = xp.ones_like(self.data, dtype=float)
 
         for v in reversed(topo):
             v._backward()
@@ -327,7 +329,7 @@ class Tensor:
         build_topo(self)
 
         for v in topo:
-            v.grad = np.zeros_like(v.data, dtype=float)
+            v.grad = xp.zeros_like(v.data, dtype=float)
 
     @property
     def shape(self):
@@ -337,13 +339,13 @@ class Tensor:
 def stack(tensors, axis=0):
     tensors = [t if isinstance(t, Tensor) else Tensor(t) for t in tensors]
     raw_data = [t.data for t in tensors]
-    out = Tensor(np.stack(raw_data, axis=axis))
+    out = Tensor(xp.stack(raw_data, axis=axis))
 
     out._prev = set(tensors)
 
     def _backward():
-        grad_slices = np.split(out.grad, len(tensors), axis=axis)
-        grads = [np.squeeze(g, axis=axis) for g in grad_slices]
+        grad_slices = xp.split(out.grad, len(tensors), axis=axis)
+        grads = [xp.squeeze(g, axis=axis) for g in grad_slices]
 
         for t, g in zip(tensors, grads):
             t.grad += g

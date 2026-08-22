@@ -1,5 +1,7 @@
 import numpy as np
 
+from littlelm.backend import xp
+
 from littlelm.network.transformer import LittleLM
 from littlelm.tokenizer import Tokenizer
 
@@ -19,16 +21,16 @@ def generate(
 
     for _ in range(max_new_tokens):
         context = ids[-context_len:]
-        logits, _ = model.forward(np.array([context]))
+        logits, _ = model.forward(xp.asarray([context]))
         next_logits = logits.data[0, -1, :] / temperature
 
-        cutoff = np.partition(next_logits, -top_k)[-top_k]
-        next_logits = np.where(next_logits >= cutoff, next_logits, -np.inf)
+        cutoff = xp.partition(next_logits, -top_k)[-top_k]
+        next_logits = xp.where(next_logits >= cutoff, next_logits, -xp.inf)
 
         next_logits -= next_logits.max()
-        probs = np.exp(next_logits)
+        probs = xp.exp(next_logits)
         probs /= probs.sum()
-        next_id = int(rng.choice(len(probs), p=probs))
+        next_id = int(rng.choice(len(probs), p=np.asarray(probs)))
         ids.append(next_id)
 
     return tokenizer.decode(ids)

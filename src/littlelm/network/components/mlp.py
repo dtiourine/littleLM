@@ -1,14 +1,14 @@
-import numpy as np
+from littlelm.backend import xp
 
 from littlelm.tensor import Tensor
 
 
 class MLP:
     def __init__(self, d_model: int):
-        self.W_1 = Tensor(np.random.randn(d_model, d_model * 4) * 0.01)
-        self.b_1 = Tensor(np.zeros(d_model * 4))
-        self.W_2 = Tensor(np.random.randn(d_model * 4, d_model) * 0.01)
-        self.b_2 = Tensor(np.zeros(d_model))
+        self.W_1 = Tensor(xp.random.randn(d_model, d_model * 4) * 0.01)
+        self.b_1 = Tensor(xp.zeros(d_model * 4))
+        self.W_2 = Tensor(xp.random.randn(d_model * 4, d_model) * 0.01)
+        self.b_2 = Tensor(xp.zeros(d_model))
 
     def forward(self, x: Tensor):
         z1 = x @ self.W_1 + self.b_1
