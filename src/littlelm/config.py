@@ -31,9 +31,9 @@ class TrainConfig:
 @dataclass
 class DataConfig:
     text_url: str = (
-        "https://raw.githubusercontent.com/karpathy/char-rnn/master/data/"
-        "tinyshakespeare/input.txt"
+        "https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/"
+        "TinyStories-train.txt?download=true"
     )
-    text_file: str = "tinyshakespeare.txt"
+    text_file: str = "tinystories-train.txt"
     tokens_file: str = "data.npy"
     tokenizer_file: str = "tokenizer.json"
