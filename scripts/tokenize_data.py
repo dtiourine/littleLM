@@ -7,6 +7,9 @@ from littlelm.tokenizer import Tokenizer
 
 
 def tokenize(text_path: Path, data_dest: Path, tokenizer_dest: Path, vocab_size: int):
+    if not text_path.exists() or not text_path.is_file() or text_path.suffix.lower() != ".txt":
+        raise ValueError(f"Input text file does not exist or is not a .txt file: {text_path}")
+
     if data_dest.exists() and tokenizer_dest.exists():
         print(
             f"Already tokenized: {data_dest} ({data_dest.stat().st_size:,} bytes) "
