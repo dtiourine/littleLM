@@ -17,7 +17,7 @@ def tokenize(text_path: Path, data_dest: Path, tokenizer_dest: Path, vocab_size:
         )
         return
 
-    with open(text_path) as f:
+    with open(text_path, encoding="utf-8") as f:
         text = f.read()
 
     print(f"Training tokenizer on {text_path} (vocab_size={vocab_size})")
