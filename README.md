@@ -14,25 +14,21 @@ A small decoder-only language model built from scratch in NumPy, all the way fro
 ## Quick setup
 
 ```bash
-# 1. Create env (Python 3.12 recommended)
-conda create -n littlelm python=3.12
-conda activate littlelm
+# 1. Create/update the project environment and install dependencies
+uv sync --extra dev --extra gpu
 
-# 2. Install the package in editable mode
-pip install -e ".[dev]"
+# 2. Run the test suite to verify everything works
+uv run pytest -q
 
-# 3. Run the test suite to verify everything works
-pytest
+# 3. Prepare data (downloads TinyStories, trains BPE, encodes corpus)
+uv run python scripts/download_data.py
+uv run python scripts/tokenize_data.py
 
-# 4. Prepare data (downloads TinyShakespeare, trains BPE, encodes corpus)
-python scripts/download_data.py
-python scripts/tokenize_data.py
+# 4. Train the model (writes weights to model/)
+uv run python scripts/train_model.py
 
-# 5. Train the model (writes weights to model/)
-python scripts/train_model.py
-
-# 6. Generate text from the trained model
-python scripts/generate.py --prompt "ROMEO:"
+# 5. Generate text from the trained model
+uv run python scripts/generate.py --prompt "Once upon a time"
 ```
 
 ## GPU acceleration with CuPy
@@ -42,8 +38,8 @@ keeping the NumPy-like array API. Install the optional CUDA dependency, and the
 backend will automatically use CuPy when a CUDA-capable GPU is available:
 
 ```bash
-pip install -e ".[gpu]"
-python scripts/train_model.py
+uv sync --extra gpu
+uv run python scripts/train_model.py
 ```
 
 If CuPy or a CUDA device is unavailable, the backend automatically falls back
@@ -54,8 +50,8 @@ to NumPy.
 Skip training and pull weights + tokenizer from HuggingFace:
 
 ```bash
-python scripts/download_pretrained.py
-python scripts/generate.py --prompt "ROMEO:"
+uv run python scripts/download_pretrained.py
+uv run python scripts/generate.py --prompt "Once upon a time"
 ```
 
 ## Layout
